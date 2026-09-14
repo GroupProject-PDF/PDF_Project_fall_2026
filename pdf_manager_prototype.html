@@ -1,0 +1,690 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Craft Studio - PDF Manager & Toolkit</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f7ff',
+                            100: '#e0effe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        },
+                        pdfRed: {
+                            50: '#fef2f2',
+                            100: '#ffe1e1',
+                            500: '#ef4444',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased h-screen flex overflow-hidden">
+
+    <!-- SIDEBAR NAVIGATION -->
+    <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col justify-between flex-shrink-0">
+        <div>
+            <!-- Logo Header -->
+            <div class="h-16 flex items-center px-6 gap-3 border-b border-slate-800">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-pdfRed-600 to-rose-400 flex items-center justify-center text-white shadow-lg shadow-pdfRed-600/30">
+                    <i class="ph-bold ph-file-pdf text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-slate-100 leading-tight">PDFCraft</h1>
+                    <span class="text-xs text-slate-400 font-medium">Studio & Manager</span>
+                </div>
+            </div>
+
+            <!-- New Upload Button -->
+            <div class="p-4">
+                <button onclick="openModal('uploadModal')" class="w-full py-2.5 px-4 bg-gradient-to-r from-pdfRed-600 to-rose-600 hover:from-pdfRed-500 hover:to-rose-500 text-white font-semibold rounded-xl shadow-lg shadow-pdfRed-600/20 flex items-center justify-center gap-2 transition-all duration-200 group">
+                    <i class="ph-bold ph-plus text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+                    <span>Upload PDF</span>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="px-3 space-y-1">
+                <a href="#" onclick="switchView('dashboardView')" id="nav-dashboardView" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-white bg-slate-800/80 transition-colors">
+                    <i class="ph-duotone ph-squares-four text-lg text-pdfRed-500"></i>
+                    Dashboard
+                </a>
+                <a href="#" onclick="switchView('filesView')" id="nav-filesView" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors">
+                    <i class="ph-duotone ph-folder-open text-lg text-amber-500"></i>
+                    All Documents
+                </a>
+                <a href="#" onclick="switchView('toolsView')" id="nav-toolsView" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors">
+                    <i class="ph-duotone ph-wrench text-lg text-indigo-400"></i>
+                    PDF Tools
+                    <span class="ml-auto text-[10px] font-bold uppercase tracking-wider bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full">12</span>
+                </a>
+                <a href="#" onclick="switchView('starredView')" id="nav-starredView" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors">
+                    <i class="ph-duotone ph-star text-lg text-yellow-400"></i>
+                    Favorites
+                </a>
+                <a href="#" onclick="switchView('trashView')" id="nav-trashView" class="nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors">
+                    <i class="ph-duotone ph-trash text-lg text-slate-500"></i>
+                    Trash
+                </a>
+            </nav>
+        </div>
+
+        <!-- Storage & User Profile Footer -->
+        <div class="p-4 border-t border-slate-800 space-y-4">
+            <!-- Storage Card -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 text-xs">
+                <div class="flex justify-between font-medium text-slate-300 mb-1.5">
+                    <span>Cloud Storage</span>
+                    <span class="text-slate-400">14.2 GB / 25 GB</span>
+                </div>
+                <div class="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-gradient-to-r from-pdfRed-500 to-indigo-500 h-full rounded-full" style="width: 57%"></div>
+                </div>
+            </div>
+
+            <!-- Profile Info -->
+            <div class="flex items-center justify-between pt-1">
+                <div class="flex items-center gap-2.5">
+                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=120" class="w-8 h-8 rounded-full object-cover border border-slate-700" alt="Avatar">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-200 leading-tight">Alex Morgan</p>
+                        <p class="text-[10px] text-slate-400">Pro Account</p>
+                    </div>
+                </div>
+                <button class="text-slate-400 hover:text-slate-200 transition-colors p-1">
+                    <i class="ph-bold ph-gear text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- MAIN WORKSPACE -->
+    <main class="flex-1 flex flex-col min-w-0 bg-slate-900 overflow-hidden">
+
+        <!-- Top Header Bar -->
+        <header class="h-16 border-b border-slate-800 px-6 flex items-center justify-between gap-4 flex-shrink-0 bg-slate-950/40 backdrop-blur-md">
+            <!-- Search Bar -->
+            <div class="relative w-96">
+                <i class="ph-bold ph-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                <input type="text" placeholder="Search documents, tags, content..." class="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-pdfRed-500 transition-all">
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-500 font-mono bg-slate-800 px-1.5 py-0.5 rounded">⌘K</span>
+            </div>
+
+            <!-- Actions Right -->
+            <div class="flex items-center gap-3">
+                <button onclick="openModal('mergeModal')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors border border-slate-700">
+                    <i class="ph-bold ph-arrows-merge text-pdfRed-400"></i>
+                    <span>Quick Merge</span>
+                </button>
+                <button onclick="openModal('compressModal')" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center gap-2 transition-colors border border-slate-700">
+                    <i class="ph-bold ph-arrows-in-line-vertical text-indigo-400"></i>
+                    <span>Compress</span>
+                </button>
+
+                <div class="h-4 w-px bg-slate-800 mx-1"></div>
+
+                <button class="w-9 h-9 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 flex items-center justify-center relative">
+                    <i class="ph-bold ph-bell text-base"></i>
+                    <span class="w-2 h-2 rounded-full bg-pdfRed-500 absolute top-2 right-2 ring-2 ring-slate-900"></span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dynamic Content View Area -->
+        <div class="flex-1 overflow-y-auto p-6 space-y-6">
+
+            <!-- VIEW 1: DASHBOARD -->
+            <section id="dashboardView" class="view-panel space-y-6">
+                <!-- Welcome Banner -->
+                <div class="relative rounded-2xl p-6 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 overflow-hidden shadow-xl">
+                    <div class="relative z-10 max-w-xl">
+                        <span class="px-2.5 py-1 rounded-md bg-pdfRed-500/10 text-pdfRed-400 text-xs font-semibold border border-pdfRed-500/20 mb-3 inline-block">PDF Suite v2.4</span>
+                        <h2 class="text-2xl font-bold text-white mb-2">Manage, Edit & Convert PDFs seamlessly</h2>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Organize all your documents in one central cloud hub. Perform advanced batch actions like OCR recognition, digital signing, and compression without leaving the browser.</p>
+                        <div class="flex items-center gap-3">
+                            <button onclick="openModal('uploadModal')" class="px-4 py-2 bg-pdfRed-600 hover:bg-pdfRed-500 text-white rounded-xl text-xs font-semibold transition-colors flex items-center gap-2">
+                                <i class="ph-bold ph-upload-simple"></i> Drop Files Here
+                            </button>
+                            <button onclick="switchView('toolsView')" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold transition-colors">Explore All Tools</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center text-xl">
+                            <i class="ph-duotone ph-files"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400">Total PDF Files</p>
+                            <p class="text-xl font-bold text-white">1,248</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+                            <i class="ph-duotone ph-arrows-in-line-vertical"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400">Space Saved (Compressed)</p>
+                            <p class="text-xl font-bold text-white">4.8 GB</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl">
+                            <i class="ph-duotone ph-signature"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400">Signed Documents</p>
+                            <p class="text-xl font-bold text-white">84</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-xl p-4 flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center text-xl">
+                            <i class="ph-duotone ph-star"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400">Starred Documents</p>
+                            <p class="text-xl font-bold text-white">32</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Tools Shortcuts -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-slate-200">Frequently Used Tools</h3>
+                        <button onclick="switchView('toolsView')" class="text-xs text-pdfRed-400 hover:underline font-medium">View all 12 tools &rarr;</button>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        <button onclick="openModal('mergeModal')" class="bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center group transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="ph-duotone ph-arrows-merge"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">Merge PDF</span>
+                        </button>
+                        <button onclick="openModal('splitModal')" class="bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center group transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="ph-duotone ph-scissors"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">Split PDF</span>
+                        </button>
+                        <button onclick="openModal('compressModal')" class="bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center group transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="ph-duotone ph-file-zip"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">Compress</span>
+                        </button>
+                        <button onclick="openModal('convertModal')" class="bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center group transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="ph-duotone ph-file-doc"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">PDF to Word</span>
+                        </button>
+                        <button class="bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center group transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="ph-duotone ph-signature"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">Sign Doc</span>
+                        </button>
+                        <button class="bg-slate-950/50 hover:bg-slate-800/80 border border-slate-800 rounded-xl p-3 flex flex-col items-center text-center group transition-all">
+                            <div class="w-10 h-10 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
+                                <i class="ph-duotone ph-text-box font-bold"></i>
+                            </div>
+                            <span class="text-xs font-medium text-slate-200">OCR Scan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Recent Documents Section -->
+                <div>
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-slate-200">Recently Modified Files</h3>
+                        <button onclick="switchView('filesView')" class="text-xs text-slate-400 hover:text-white">View All</button>
+                    </div>
+
+                    <!-- Compact Table -->
+                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-900/80 text-[11px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                                    <th class="py-3 px-4">Name</th>
+                                    <th class="py-3 px-4">Size</th>
+                                    <th class="py-3 px-4">Pages</th>
+                                    <th class="py-3 px-4">Modified</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 text-xs">
+                                <!-- File Row 1 -->
+                                <tr class="hover:bg-slate-800/40 transition-colors group">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded bg-pdfRed-500/10 border border-pdfRed-500/20 text-pdfRed-400 flex items-center justify-center">
+                                                <i class="ph-bold ph-file-pdf text-lg"></i>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium text-slate-200 hover:text-pdfRed-400 cursor-pointer" onclick="openPdfViewer('Annual_Financial_Report_2026.pdf')">Annual_Financial_Report_2026.pdf</span>
+                                                <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                                                    <span class="bg-slate-800 px-1.5 py-0.2 rounded text-slate-400">Finance</span>
+                                                    <span>• Confidential</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-400">4.2 MB</td>
+                                    <td class="py-3 px-4 text-slate-400">24 pgs</td>
+                                    <td class="py-3 px-4 text-slate-400">10 mins ago</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100">
+                                            <button onclick="openPdfViewer('Annual_Financial_Report_2026.pdf')" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-white" title="View"><i class="ph-bold ph-eye text-base"></i></button>
+                                            <button onclick="openModal('compressModal')" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-indigo-400" title="Compress"><i class="ph-bold ph-arrows-in-line-vertical text-base"></i></button>
+                                            <button class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-yellow-400" title="Star"><i class="ph-bold ph-star text-base"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- File Row 2 -->
+                                <tr class="hover:bg-slate-800/40 transition-colors group">
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded bg-pdfRed-500/10 border border-pdfRed-500/20 text-pdfRed-400 flex items-center justify-center">
+                                                <i class="ph-bold ph-file-pdf text-lg"></i>
+                                            </div>
+                                            <div>
+                                                <span class="font-medium text-slate-200 hover:text-pdfRed-400 cursor-pointer" onclick="openPdfViewer('Product_Design_Guidelines_v3.pdf')">Product_Design_Guidelines_v3.pdf</span>
+                                                <div class="flex items-center gap-2 text-[10px] text-slate-500">
+                                                    <span class="bg-slate-800 px-1.5 py-0.2 rounded text-slate-400">Design</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-slate-400">18.5 MB</td>
+                                    <td class="py-3 px-4 text-slate-400">68 pgs</td>
+                                    <td class="py-3 px-4 text-slate-400">2 hours ago</td>
+                                    <td class="py-3 px-4 text-right">
+                                        <div class="flex items-center justify-end gap-1 opacity-80 group-hover:opacity-100">
+                                            <button onclick="openPdfViewer('Product_Design_Guidelines_v3.pdf')" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-white" title="View"><i class="ph-bold ph-eye text-base"></i></button>
+                                            <button onclick="openModal('compressModal')" class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-indigo-400" title="Compress"><i class="ph-bold ph-arrows-in-line-vertical text-base"></i></button>
+                                            <button class="p-1.5 hover:bg-slate-800 rounded text-slate-400 hover:text-yellow-400" title="Star"><i class="ph-bold ph-star text-base"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 2: ALL FILES / MANAGER -->
+            <section id="filesView" class="view-panel hidden space-y-4">
+                <!-- Toolbar Header -->
+                <div class="flex flex-wrap items-center justify-between gap-4 bg-slate-950/50 p-3 rounded-xl border border-slate-800">
+                    <!-- Filter Tabs -->
+                    <div class="flex items-center gap-1 bg-slate-900 p-1 rounded-lg border border-slate-800 text-xs font-medium">
+                        <button class="px-3 py-1 bg-slate-800 text-white rounded-md shadow-sm">All Files (148)</button>
+                        <button class="px-3 py-1 text-slate-400 hover:text-white rounded-md">Shared</button>
+                        <button class="px-3 py-1 text-slate-400 hover:text-white rounded-md">Signed</button>
+                        <button class="px-3 py-1 text-slate-400 hover:text-white rounded-md">Protected</button>
+                    </div>
+
+                    <!-- Layout & Filter Controls -->
+                    <div class="flex items-center gap-3">
+                        <select class="bg-slate-900 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none">
+                            <option>Sort by: Last Modified</option>
+                            <option>Sort by: Name (A-Z)</option>
+                            <option>Sort by: File Size</option>
+                        </select>
+                        <div class="flex items-center bg-slate-900 rounded-lg p-0.5 border border-slate-800">
+                            <button id="viewGridBtn" onclick="toggleLayout('grid')" class="p-1.5 rounded text-slate-400 hover:text-white"><i class="ph-bold ph-squares-four"></i></button>
+                            <button id="viewListBtn" onclick="toggleLayout('list')" class="p-1.5 bg-slate-800 rounded text-white"><i class="ph-bold ph-list-bullets"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid View Workspace (Toggleable) -->
+                <div id="filesContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <!-- Card 1 -->
+                    <div class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between group transition-all relative">
+                        <div>
+                            <div class="aspect-[4/3] bg-slate-900 rounded-lg border border-slate-800 mb-3 flex items-center justify-center relative overflow-hidden group-hover:border-pdfRed-500/50 transition-colors">
+                                <i class="ph-duotone ph-file-pdf text-5xl text-pdfRed-500 opacity-80"></i>
+                                <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                                    <button onclick="openPdfViewer('Vendor_Agreement_2026.pdf')" class="px-3 py-1.5 bg-pdfRed-600 text-white text-xs font-semibold rounded-lg shadow-md hover:bg-pdfRed-500">Open</button>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-semibold text-slate-200 truncate" title="Vendor_Agreement_2026.pdf">Vendor_Agreement_2026.pdf</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">2.4 MB • 5 Pages</p>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500">
+                            <span>2 hours ago</span>
+                            <div class="flex items-center gap-1">
+                                <button class="p-1 hover:text-amber-400"><i class="ph-bold ph-star"></i></button>
+                                <button class="p-1 hover:text-white"><i class="ph-bold ph-dots-three-vertical"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between group transition-all relative">
+                        <div>
+                            <div class="aspect-[4/3] bg-slate-900 rounded-lg border border-slate-800 mb-3 flex items-center justify-center relative overflow-hidden group-hover:border-pdfRed-500/50 transition-colors">
+                                <i class="ph-duotone ph-file-pdf text-5xl text-pdfRed-500 opacity-80"></i>
+                                <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                                    <button onclick="openPdfViewer('Q3_Marketing_Strategy.pdf')" class="px-3 py-1.5 bg-pdfRed-600 text-white text-xs font-semibold rounded-lg shadow-md hover:bg-pdfRed-500">Open</button>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-semibold text-slate-200 truncate" title="Q3_Marketing_Strategy.pdf">Q3_Marketing_Strategy.pdf</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">14.1 MB • 32 Pages</p>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500">
+                            <span>Yesterday</span>
+                            <div class="flex items-center gap-1">
+                                <button class="p-1 text-amber-400"><i class="ph-fill ph-star"></i></button>
+                                <button class="p-1 hover:text-white"><i class="ph-bold ph-dots-three-vertical"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col justify-between group transition-all relative">
+                        <div>
+                            <div class="aspect-[4/3] bg-slate-900 rounded-lg border border-slate-800 mb-3 flex items-center justify-center relative overflow-hidden group-hover:border-pdfRed-500/50 transition-colors">
+                                <i class="ph-duotone ph-file-pdf text-5xl text-pdfRed-500 opacity-80"></i>
+                                <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity gap-2">
+                                    <button onclick="openPdfViewer('Software_Architecture_Doc.pdf')" class="px-3 py-1.5 bg-pdfRed-600 text-white text-xs font-semibold rounded-lg shadow-md hover:bg-pdfRed-500">Open</button>
+                                </div>
+                            </div>
+                            <h4 class="text-xs font-semibold text-slate-200 truncate" title="Software_Architecture_Doc.pdf">Software_Architecture_Doc.pdf</h4>
+                            <p class="text-[11px] text-slate-400 mt-0.5">8.9 MB • 18 Pages</p>
+                        </div>
+                        <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-800/80 text-[11px] text-slate-500">
+                            <span>3 days ago</span>
+                            <div class="flex items-center gap-1">
+                                <button class="p-1 hover:text-amber-400"><i class="ph-bold ph-star"></i></button>
+                                <button class="p-1 hover:text-white"><i class="ph-bold ph-dots-three-vertical"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VIEW 3: PDF TOOLS TOOLKIT -->
+            <section id="toolsView" class="view-panel hidden space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-white mb-1">PDF Toolkit</h2>
+                    <p class="text-xs text-slate-400">All-in-one suite to process, convert, secure, and edit PDF documents.</p>
+                </div>
+
+                <!-- Tools Categories -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Organize Category -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                            <i class="ph-bold ph-folders text-amber-500"></i> Organize & Optimize
+                        </h3>
+                        <div class="space-y-2">
+                            <div onclick="openModal('mergeModal')" class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-red-500/10 text-red-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-arrows-merge"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-pdfRed-400 transition-colors">Merge PDF</h4>
+                                    <p class="text-[11px] text-slate-500">Combine multiple PDFs into one</p>
+                                </div>
+                            </div>
+                            <div onclick="openModal('splitModal')" class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-scissors"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-purple-400 transition-colors">Split PDF</h4>
+                                    <p class="text-[11px] text-slate-500">Extract pages into separate files</p>
+                                </div>
+                            </div>
+                            <div onclick="openModal('compressModal')" class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-arrows-in-line-vertical"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">Compress PDF</h4>
+                                    <p class="text-[11px] text-slate-500">Reduce file size without quality loss</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Convert Category -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                            <i class="ph-bold ph-swap text-blue-500"></i> Convert PDF
+                        </h3>
+                        <div class="space-y-2">
+                            <div onclick="openModal('convertModal')" class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-file-doc"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-blue-400 transition-colors">PDF to Word / Excel</h4>
+                                    <p class="text-[11px] text-slate-500">Convert to editable documents</p>
+                                </div>
+                            </div>
+                            <div class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-image"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-amber-400 transition-colors">PDF to JPG / PNG</h4>
+                                    <p class="text-[11px] text-slate-500">Extract high-res images</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security & Edit Category -->
+                    <div class="space-y-3">
+                        <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                            <i class="ph-bold ph-shield-check text-rose-500"></i> Security & Edit
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-lock-key"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-emerald-400 transition-colors">Protect with Password</h4>
+                                    <p class="text-[11px] text-slate-500">Encrypt PDF with AES 256-bit</p>
+                                </div>
+                            </div>
+                            <div class="bg-slate-950/60 border border-slate-800 hover:border-slate-700 p-3.5 rounded-xl cursor-pointer transition-all flex items-center gap-3 group">
+                                <div class="w-9 h-9 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg group-hover:scale-105 transition-transform">
+                                    <i class="ph-duotone ph-signature"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-xs font-semibold text-slate-200 group-hover:text-indigo-400 transition-colors">Sign Document</h4>
+                                    <p class="text-[11px] text-slate-500">Draw or upload digital signature</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- PDF VIEWER MODAL INTERFACE -->
+    <div id="pdfViewerModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex-col">
+        <!-- Viewer Top Navbar -->
+        <header class="h-14 border-b border-slate-800 bg-slate-950 px-4 flex items-center justify-between gap-4 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <button onclick="closePdfViewer()" class="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition-colors">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+                <div class="h-4 w-px bg-slate-800"></div>
+                <div class="flex items-center gap-2">
+                    <i class="ph-bold ph-file-pdf text-pdfRed-500 text-lg"></i>
+                    <span id="viewerFileName" class="text-xs font-semibold text-slate-200">Document.pdf</span>
+                </div>
+            </div>
+
+            <!-- Page Navigation & Zoom Tools -->
+            <div class="flex items-center gap-2 bg-slate-900 border border-slate-800 rounded-lg p-1 text-xs">
+                <button class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><i class="ph-bold ph-caret-left"></i></button>
+                <span class="px-2 text-slate-300">Page <input type="text" value="1" class="w-8 text-center bg-slate-950 border border-slate-800 rounded text-xs py-0.5"> of 24</span>
+                <button class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><i class="ph-bold ph-caret-right"></i></button>
+                
+                <div class="h-4 w-px bg-slate-800 mx-1"></div>
+
+                <button class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><i class="ph-bold ph-magnifying-glass-minus"></i></button>
+                <span class="px-1 text-slate-400 text-[11px]">100%</span>
+                <button class="p-1 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><i class="ph-bold ph-magnifying-glass-plus"></i></button>
+            </div>
+
+            <!-- Viewer Secondary Tools -->
+            <div class="flex items-center gap-2">
+                <button class="px-3 py-1.5 bg-pdfRed-600 hover:bg-pdfRed-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors">
+                    <i class="ph-bold ph-download-simple"></i> Download
+                </button>
+            </div>
+        </header>
+
+        <!-- Viewer Workspace -->
+        <div class="flex-1 flex overflow-hidden">
+            <!-- Left Sidebar (Thumbnails) -->
+            <aside class="w-56 bg-slate-950 border-r border-slate-800 p-3 space-y-3 overflow-y-auto hidden md:block">
+                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Thumbnails</p>
+                <div class="space-y-3">
+                    <div class="border-2 border-pdfRed-500 rounded-lg p-1 bg-slate-900 cursor-pointer">
+                        <div class="aspect-[1/1.4] bg-slate-800 rounded flex items-center justify-center text-slate-600 text-xs">Page 1</div>
+                    </div>
+                    <div class="border border-slate-800 rounded-lg p-1 bg-slate-900 hover:border-slate-700 cursor-pointer">
+                        <div class="aspect-[1/1.4] bg-slate-800 rounded flex items-center justify-center text-slate-600 text-xs">Page 2</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Paper Canvas Area -->
+            <div class="flex-1 bg-slate-900 p-8 overflow-y-auto flex justify-center items-start">
+                <div class="w-[650px] bg-white rounded shadow-2xl min-h-[900px] text-slate-800 p-12 space-y-6 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-center border-b pb-4 mb-6">
+                            <h1 class="text-2xl font-bold text-slate-900">ANNUAL FINANCIAL REPORT</h1>
+                            <span class="text-sm font-semibold text-slate-500">FY 2026</span>
+                        </div>
+                        <p class="text-sm leading-relaxed text-slate-700">
+                            This document serves as an overview of quarterly operations and revenue performance. All metrics detailed herein are subject to final auditing standards.
+                        </p>
+                    </div>
+                    <div class="text-center text-xs text-slate-400 border-t pt-4">Page 1 of 24</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: FILE UPLOAD -->
+    <div id="uploadModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('uploadModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            <h3 class="text-lg font-bold text-white">Upload Documents</h3>
+            <div class="border-2 border-dashed border-slate-700 hover:border-pdfRed-500 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer transition-colors bg-slate-950/40">
+                <i class="ph-duotone ph-cloud-arrow-up text-5xl text-pdfRed-500 mb-2"></i>
+                <p class="text-sm font-semibold text-slate-200">Click to upload or drag & drop</p>
+                <p class="text-xs text-slate-500 mt-1">PDF files up to 100MB supported</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MERGE PDF -->
+    <div id="mergeModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeModal('mergeModal')" class="absolute top-4 right-4 text-slate-400 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="ph-duotone ph-arrows-merge text-pdfRed-500"></i> Merge PDFs</h3>
+            <p class="text-xs text-slate-400">Combine multiple PDF files into one structured document.</p>
+            <button class="w-full py-2 bg-pdfRed-600 hover:bg-pdfRed-500 text-white rounded-xl text-xs font-semibold transition-colors">Start Merging</button>
+        </div>
+    </div>
+
+    <!-- INTERACTIVE SCRIPTING -->
+    <script>
+        // Switch main views
+        function switchView(viewId) {
+            document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+            document.getElementById(viewId).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-item').forEach(el => {
+                el.classList.remove('bg-slate-800/80', 'text-white');
+                el.classList.add('text-slate-400');
+            });
+
+            const activeNav = document.getElementById('nav-' + viewId);
+            if (activeNav) {
+                activeNav.classList.add('bg-slate-800/80', 'text-white');
+                activeNav.classList.remove('text-slate-400');
+            }
+        }
+
+        // Generic Modal Handler
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // PDF Viewer Controls
+        function openPdfViewer(fileName) {
+            document.getElementById('viewerFileName').innerText = fileName;
+            document.getElementById('pdfViewerModal').classList.remove('hidden');
+            document.getElementById('pdfViewerModal').classList.add('flex');
+        }
+        function closePdfViewer() {
+            document.getElementById('pdfViewerModal').classList.add('hidden');
+            document.getElementById('pdfViewerModal').classList.remove('flex');
+        }
+
+        // Layout switcher for file manager
+        function toggleLayout(type) {
+            const container = document.getElementById('filesContainer');
+            if (type === 'list') {
+                container.className = "flex flex-col space-y-2";
+            } else {
+                container.className = "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4";
+            }
+        }
+    </script>
+</body>
+</html>
