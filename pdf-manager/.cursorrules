@@ -1,5 +1,0 @@
-﻿# Vibe Coding System Rules
-- This is a 100% local desktop PDF Manager built with Rust and Tauri.
-- Do NOT add external cloud dependencies, API integrations, or network storage services.
-- All PDF manipulation must happen on-device using local Rust crates (e.g., lopdf, pdfium-render).
-- Keep code modular and enforce strict error handling.
